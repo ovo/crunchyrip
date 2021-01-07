@@ -1,4 +1,5 @@
 # Crunchyrip
+[![Go Report Card](https://goreportcard.com/badge/github.com/ovo/crunchyrip)](https://goreportcard.com/report/github.com/ovo/crunchyrip)
 
 Download full episodes from crunchyroll into a .ts media file
 

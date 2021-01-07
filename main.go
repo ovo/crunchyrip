@@ -32,7 +32,7 @@ func main() {
 			&cli.StringFlag{
 				Name:     "episodeIDs",
 				Value:    "",
-				Usage:    "comma-seperated episode ID on vrv.co ex. https://vrv.co/watch/ -> GRMGEZ85R <- /Hunter-x-Hunter",
+				Usage:    "comma-separated episode ID on vrv.co ex. https://vrv.co/watch/ -> GRMGEZ85R <- /Hunter-x-Hunter",
 				Required: true,
 			},
 			&cli.StringFlag{
