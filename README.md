@@ -1,6 +1,8 @@
 # Crunchyrip
 
-Download full episodes from crunchyroll
+Download full episodes from crunchyroll into a .ts media file
+
+Inspired by [anirip](https://github.com/s32x/anirip)
 
 ## Installation
 Clone or download repository
@@ -9,7 +11,7 @@ Clone or download repository
 
 ## Usage
 
-`$ crunchyrip --email <email> --password <password> --episodeID <episodeID>`
+`$ crunchyrip --email <email> --password <password> --episodeID <episodeID>,<episodeID2>...`
 
 For more info run `$ crunchyrip --help`
 

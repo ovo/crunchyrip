@@ -12,10 +12,12 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/grafov/m3u8"
 	lru "github.com/hashicorp/golang-lru"
+	"github.com/ovo/crunchyrip/common"
 )
 
 var (
@@ -32,14 +34,15 @@ type Download struct {
 }
 
 // DownloadStream downloads the given stream url
-func DownloadStream(c *http.Client, auth AuthConfig, url string, resolution string) error {
+func DownloadStream(c *http.Client, auth AuthConfig, url string, resolution string, ep Episode, wg *sync.WaitGroup) error {
+	defer wg.Done()
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 
 	if err != nil {
 		return err
 	}
 
-	req.Header.Add("User-Agent", userAgent)
+	req.Header.Add("User-Agent", common.UserAgent)
 
 	resp, err := c.Do(req)
 
@@ -49,7 +52,10 @@ func DownloadStream(c *http.Client, auth AuthConfig, url string, resolution stri
 
 	defer resp.Body.Close()
 
-	os.Mkdir("./tmp", 0755)
+	os.Mkdir("./downloads", 0755)
+	os.Mkdir("./downloads/"+common.FormatTitle(ep.SeriesTitle), 0755)
+	os.Mkdir("./downloads/"+common.FormatTitle(ep.SeriesTitle)+"/"+common.FormatTitle(ep.SeasonTitle), 0755)
+	filePath := "./downloads/" + common.FormatTitle(ep.SeriesTitle) + "/" + common.FormatTitle(ep.SeasonTitle) + "/" + common.FormatTitle(ep.Title) + "_" + ep.ID + ".ts"
 
 	p, listType, err := m3u8.DecodeFrom(bufio.NewReader(resp.Body), true)
 
@@ -60,17 +66,22 @@ func DownloadStream(c *http.Client, auth AuthConfig, url string, resolution stri
 	if listType == m3u8.MASTER {
 		masterpl := p.(*m3u8.MasterPlaylist)
 
-		for i, variant := range masterpl.Variants {
-			if variant.Resolution == resolution {
-				msChan := make(chan *Download, 2048)
-				go GetPlaylist(c, masterpl.Variants[i].URI, 0, true, msChan)
-				DownloadSegment(c, "tmp/download.ts", msChan, 0)
-				break
+		if resolution != "" {
+			for i, variant := range masterpl.Variants {
+				if variant.Resolution == resolution {
+					msChan := make(chan *Download, 1024)
+					go GetPlaylist(c, masterpl.Variants[i].URI, 0, true, msChan, wg)
+					DownloadSegment(c, filePath, msChan, 0)
+					break
+				}
 			}
+		} else {
+			msChan := make(chan *Download, 1024)
+			go GetPlaylist(c, masterpl.Variants[0].URI, 0, true, msChan, wg)
+			DownloadSegment(c, filePath, msChan, 0)
 		}
 
 	}
-
 	return nil
 }
 
@@ -158,7 +169,7 @@ func DownloadSegment(c *http.Client, fn string, dlc chan *Download, recTime time
 }
 
 // GetPlaylist gets the playlist data
-func GetPlaylist(c *http.Client, urlStr string, recTime time.Duration, useLocalTime bool, dlc chan *Download) {
+func GetPlaylist(c *http.Client, urlStr string, recTime time.Duration, useLocalTime bool, dlc chan *Download, wg *sync.WaitGroup) {
 	startTime := time.Now()
 	var recDuration time.Duration = 0
 	cache, _ := lru.New(1024)

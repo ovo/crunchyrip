@@ -7,6 +7,8 @@ import (
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/ovo/crunchyrip/common"
 )
 
 // Credentials holds crunchyroll oauth credientials
@@ -55,7 +57,7 @@ func Login(c *http.Client, user string, pass string) (Credentials, error) {
 		return Credentials{}, err
 	}
 
-	req.Header.Add("User-Agent", userAgent)
+	req.Header.Add("User-Agent", common.UserAgent)
 	req.Header.Add("Authorization", "Basic OGQ5cnV5ai16c2N3M3ZydmdfdWo6VFVTU212UlNlRkwyZm45bjUxdmVqdUJyOFhoemctRUY=")
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded; charset=utf-8")
 	req.Header.Add("Accept-Language", "en-US;q=1.0")
@@ -84,7 +86,7 @@ func GetCMS(c *http.Client, token string) (CMSInfo, error) {
 	}
 
 	req.Header.Add("Authorization", "Bearer "+token)
-	req.Header.Add("User-Agent", userAgent)
+	req.Header.Add("User-Agent", common.UserAgent)
 	req.Header.Add("Accept-Language", "en-US;q=1.0")
 
 	resp, err := c.Do(req)

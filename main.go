@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"os"
+	"strings"
+	"sync"
 
 	cr "github.com/ovo/crunchyrip/crunchyroll"
 	"github.com/urfave/cli/v2"
@@ -28,9 +30,9 @@ func main() {
 				Required: true,
 			},
 			&cli.StringFlag{
-				Name:     "episodeID",
+				Name:     "episodeIDs",
 				Value:    "",
-				Usage:    "episode ID on vrv.co ex. https://vrv.co/watch/ -> GRMGEZ85R <- /Hunter-x-Hunter",
+				Usage:    "comma-seperated episode ID on vrv.co ex. https://vrv.co/watch/ -> GRMGEZ85R <- /Hunter-x-Hunter",
 				Required: true,
 			},
 			&cli.StringFlag{
@@ -39,11 +41,12 @@ func main() {
 			},
 			&cli.StringFlag{
 				Name:  "resolution",
-				Value: "1920x1080",
+				Value: "",
 				Usage: "resolution of the download",
 			},
 		},
 		Action: func(c *cli.Context) error {
+			var wg sync.WaitGroup
 			client := http.Client{}
 			client.Jar, _ = cookiejar.New(nil)
 
@@ -65,21 +68,33 @@ func main() {
 				Bucket:      cms.Cms.Bucket,
 			}
 
-			log.Println("Getting episode info")
-			episode, err := cr.GetEpisode(&client, authConfig, c.String("episodeID"))
+			ids := strings.Split(c.String("episodeIDs"), ",")
 
-			if err != nil {
-				return err
+			wg.Add(len(ids))
+
+			for _, id := range ids {
+				go func(c *http.Client, authConfig cr.AuthConfig, id string, resolution string, locale string) {
+					log.Println("Getting episode info for " + id)
+
+					episode, err := cr.GetEpisode(c, authConfig, id)
+
+					if err != nil {
+						log.Fatal(err)
+					}
+
+					streamURL, err := cr.GetStreamURL(c, authConfig, episode.Links.Streams.Href, locale)
+
+					if err != nil {
+						log.Fatal(err)
+					}
+
+					log.Println("Downloading " + episode.ID)
+					go cr.DownloadStream(c, authConfig, streamURL, resolution, episode, &wg)
+
+				}(&client, authConfig, id, c.String("resolution"), c.String("locale"))
+
 			}
-
-			streamURL, err := cr.GetStreamURL(&client, authConfig, episode.Links.Streams.Href, c.String("locale"))
-
-			if err != nil {
-				return err
-			}
-
-			log.Println("Downloading stream")
-			cr.DownloadStream(&client, authConfig, streamURL, c.String("resolution"))
+			wg.Wait()
 
 			return nil
 		},

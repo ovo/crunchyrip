@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Jeffail/gabs/v2"
+	"github.com/ovo/crunchyrip/common"
 )
 
 // GetStreamURL returns the stream url for the videoID and locale
@@ -15,7 +16,7 @@ func GetStreamURL(c *http.Client, auth AuthConfig, path string, locale string) (
 		return "", err
 	}
 
-	req.Header.Add("User-Agent", userAgent)
+	req.Header.Add("User-Agent", common.UserAgent)
 	req.Header.Add("Accept-Language", "en-US;q=1.0")
 
 	resp, err := c.Do(req)

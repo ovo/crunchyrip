@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+
+	"github.com/ovo/crunchyrip/common"
 )
 
 // Episode contains stream information about the episode
@@ -83,7 +85,7 @@ func GetEpisode(c *http.Client, auth AuthConfig, videoID string) (Episode, error
 		return Episode{}, err
 	}
 
-	req.Header.Add("User-Agent", userAgent)
+	req.Header.Add("User-Agent", common.UserAgent)
 	req.Header.Add("Accept-Language", "en-US;q=1.0")
 
 	resp, err := c.Do(req)
