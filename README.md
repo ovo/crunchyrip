@@ -13,6 +13,8 @@ Clone or download repository
 
 `$ crunchyrip --email <email> --password <password> --episodeID <episodeID>,<episodeID2>...`
 
+Episodes will be stored in the downloads folder
+
 For more info run `$ crunchyrip --help`
 
 ## Finding episodeID
