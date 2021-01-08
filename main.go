@@ -1,10 +1,13 @@
 package main
 
 import (
+	"bufio"
+	"fmt"
 	"log"
 	"net/http"
 	"net/http/cookiejar"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -30,10 +33,9 @@ func main() {
 				Required: true,
 			},
 			&cli.StringFlag{
-				Name:     "episodeIDs",
-				Value:    "",
-				Usage:    "comma-separated episode ID on vrv.co ex. https://vrv.co/watch/ -> GRMGEZ85R <- /Hunter-x-Hunter",
-				Required: true,
+				Name:  "episodeIDs",
+				Value: "",
+				Usage: "comma-separated episode ID on vrv.co ex. https://vrv.co/watch/ -> GRMGEZ85R <- /Hunter-x-Hunter",
 			},
 			&cli.StringFlag{
 				Name:  "locale",
@@ -43,6 +45,11 @@ func main() {
 				Name:  "resolution",
 				Value: "",
 				Usage: "resolution of the download",
+			},
+			&cli.StringFlag{
+				Name:  "seriesID",
+				Value: "",
+				Usage: "ID of the series you want to download a season for",
 			},
 		},
 		Action: func(c *cli.Context) error {
@@ -68,32 +75,78 @@ func main() {
 				Bucket:      cms.Cms.Bucket,
 			}
 
-			ids := strings.Split(c.String("episodeIDs"), ",")
+			if c.String("episodeIDs") != "" {
+				ids := strings.Split(c.String("episodeIDs"), ",")
 
-			wg.Add(len(ids))
+				wg.Add(len(ids))
 
-			for _, id := range ids {
-				go func(c *http.Client, authConfig cr.AuthConfig, id string, resolution string, locale string) {
-					log.Println("Getting episode info for " + id)
+				for _, id := range ids {
+					go func(c *http.Client, authConfig cr.AuthConfig, id string, resolution string, locale string) {
+						log.Println("Getting episode info for " + id)
 
-					episode, err := cr.GetEpisode(c, authConfig, id)
+						episode, err := cr.GetEpisode(c, authConfig, id)
 
-					if err != nil {
-						log.Fatal(err)
-					}
+						if err != nil {
+							log.Fatal(err)
+						}
 
-					streamURL, err := cr.GetStreamURL(c, authConfig, episode.Links.Streams.Href, locale)
+						streamURL, err := cr.GetStreamURL(c, authConfig, episode.Links.Streams.Href, locale)
 
-					if err != nil {
-						log.Fatal(err)
-					}
+						if err != nil {
+							log.Fatal(err)
+						}
 
-					log.Println("Downloading " + episode.ID)
-					go cr.DownloadStream(c, authConfig, streamURL, resolution, episode, &wg)
+						log.Println("Downloading " + episode.ID)
+						go cr.DownloadStream(c, authConfig, streamURL, resolution, episode, &wg)
 
-				}(&client, authConfig, id, c.String("resolution"), c.String("locale"))
+					}(&client, authConfig, id, c.String("resolution"), c.String("locale"))
 
+				}
 			}
+
+			if c.String("seriesID") != "" {
+				seasons, err := cr.GetSeasons(&client, authConfig, c.String("seriesID"))
+
+				if err != nil {
+					return err
+				}
+
+				for i, s := range seasons {
+					fmt.Println(i+1, s.Title)
+				}
+
+				reader := bufio.NewReader(os.Stdin)
+				fmt.Print("Enter season to download: ")
+				text, _ := reader.ReadString('\n')
+				index, err := strconv.Atoi(strings.Trim(text, "\n"))
+
+				if err != nil {
+					return err
+				}
+
+				log.Println("Getting episode info for " + seasons[index-1].Title)
+				episodes, err := cr.GetEpisodes(&client, authConfig, seasons[index-1].ID)
+
+				if err != nil {
+					return err
+				}
+
+				wg.Add(len(episodes))
+
+				for _, e := range episodes {
+					go func(c *http.Client, authConfig cr.AuthConfig, ep cr.Episode, resolution string, locale string) {
+						streamURL, err := cr.GetStreamURL(c, authConfig, ep.Links.Streams.Href, locale)
+
+						if err != nil {
+							log.Fatal(err)
+						}
+
+						log.Println("Downloading " + ep.ID)
+						go cr.DownloadStream(c, authConfig, streamURL, resolution, ep, &wg)
+					}(&client, authConfig, e, c.String("resolution"), c.String("locale"))
+				}
+			}
+
 			wg.Wait()
 
 			return nil

@@ -76,6 +76,49 @@ type Episode struct {
 	Playback        string   `json:"playback"`
 }
 
+// GetEpisodes returns a list of episodes for a given seasonID
+func GetEpisodes(c *http.Client, auth AuthConfig, seasonID string) ([]Episode, error) {
+	type episodesResp struct {
+		common.Metadata
+		Links struct {
+		} `json:"__links__"`
+		Actions struct {
+		} `json:"__actions__"`
+		Total int       `json:"total"`
+		Items []Episode `json:"items"`
+	}
+	var episodes episodesResp
+
+	url := "https://beta-api.crunchyroll.com/cms/v2" + auth.Bucket + "/episodes?season_id=" + seasonID + "&locale=en-US&Signature=" + auth.Signature + "&Key-Pair-Id=" + auth.KeyPairID + "&Policy=" + auth.Policy
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("User-Agent", common.UserAgent)
+	req.Header.Add("Accept-Language", "en-US;q=1.0")
+
+	resp, err := c.Do(req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	json.Unmarshal([]byte(body), &episodes)
+
+	return episodes.Items, nil
+
+}
+
 // GetEpisode returns information about the episode
 func GetEpisode(c *http.Client, auth AuthConfig, videoID string) (Episode, error) {
 	url := "https://beta-api.crunchyroll.com/cms/v2" + auth.Bucket + "/episodes/" + videoID + "?locale=en-US&Signature=" + auth.Signature + "&Key-Pair-Id=" + auth.KeyPairID + "&Policy=" + auth.Policy

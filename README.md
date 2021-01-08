@@ -12,7 +12,15 @@ Clone or download repository
 
 ## Usage
 
+#### For individual episodes
+
 `$ crunchyrip --email <email> --password <password> --episodeID <episodeID>,<episodeID2>...`
+
+#### For seasons
+
+`$ crunchyrip --email <email> --password <password> --seriesID <seriesID>`
+
+You will be prompted to select the season you want to download for the given series
 
 Episodes will be stored in the downloads folder
 
@@ -20,5 +28,12 @@ For more info run `$ crunchyrip --help`
 
 ## Finding episodeID
 
-1. Go to https://vrv.co and find the episode you want to download
-2. For the episode https://vrv.co/watch/GRMGEZ85R/Hunter-x-Hunter, the ID would be GRMGEZ85R
+1. Go to Crunchyroll and find the episode you want to download
+2. Inspect element and paste this into console
+`document.getElementsByClassName('boxcontents')[0].id.split('_')[2]`
+
+## Finding seriesID
+
+1. Go to Crunchyroll and find the series that you want to download
+2. Inspect element and paste this into console
+`JSON.parse(document.getElementsByClassName("show-actions")[0].attributes['data-contentmedia'].value).mediaId`
