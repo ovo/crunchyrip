@@ -54,7 +54,11 @@ func main() {
 		},
 		Action: func(c *cli.Context) error {
 			var wg sync.WaitGroup
-			client := http.Client{}
+			tr := &http.Transport{
+				MaxIdleConns:        20,
+				MaxIdleConnsPerHost: 20,
+			}
+			client := http.Client{Transport: tr}
 			client.Jar, _ = cookiejar.New(nil)
 
 			log.Println("Logging in")
