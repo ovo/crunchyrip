@@ -1,6 +1,7 @@
 package crunchyroll
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -52,13 +53,14 @@ func Login(c *http.Client, user string, pass string) (Credentials, error) {
 	}
 	reader := strings.NewReader(data.Encode())
 	req, err := http.NewRequest(http.MethodPost, "https://beta-api.crunchyroll.com/auth/v1/token", reader)
+	authString := base64.StdEncoding.EncodeToString([]byte(common.ClientID + ":" + common.ClientSecret))
 
 	if err != nil {
 		return Credentials{}, err
 	}
 
 	req.Header.Add("User-Agent", common.UserAgent)
-	req.Header.Add("Authorization", "Basic OGQ5cnV5ai16c2N3M3ZydmdfdWo6VFVTU212UlNlRkwyZm45bjUxdmVqdUJyOFhoemctRUY=")
+	req.Header.Add("Authorization", "Basic "+authString)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded; charset=utf-8")
 	req.Header.Add("Accept-Language", "en-US;q=1.0")
 

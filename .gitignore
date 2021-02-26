@@ -1,3 +1,5 @@
 tmp/
 downloads/
+.vscode/
+
 .DS_Store
