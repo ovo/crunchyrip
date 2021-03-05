@@ -6,6 +6,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/binary"
+	"errors"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -83,6 +84,45 @@ func DownloadStream(c *http.Client, auth AuthConfig, url string, resolution stri
 
 	}
 	return nil
+}
+
+// GetResolutions gets the resolutions for an episodeID
+func GetResolutions(c *http.Client, auth AuthConfig, url string, ep Episode) ([]string, error) {
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+
+	if err != nil {
+		return []string{}, err
+	}
+
+	req.Header.Add("User-Agent", common.UserAgent)
+
+	resp, err := c.Do(req)
+
+	if err != nil {
+		return []string{}, err
+	}
+
+	defer resp.Body.Close()
+
+	p, listType, err := m3u8.DecodeFrom(bufio.NewReader(resp.Body), true)
+
+	if err != nil {
+		return []string{}, err
+	}
+
+	if listType == m3u8.MEDIA {
+		return []string{}, errors.New("incorrect m3u8 format")
+	}
+
+	playlist := p.(*m3u8.MasterPlaylist)
+	resolutions := make([]string, len(playlist.Variants))
+
+	for i, variant := range playlist.Variants {
+		resolutions[i] = variant.Resolution
+	}
+
+	return resolutions, nil
+
 }
 
 // DecryptData decrypts the AES-128 encrypted data
