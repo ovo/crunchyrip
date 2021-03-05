@@ -14,17 +14,17 @@ Clone or download repository
 
 #### For individual episodes
 
-`$ crunchyrip --email <email> --password <password> --episodeID <episodeID>,<episodeID2>...`
+`$ crunchyrip download --email <email> --password <password> --episodeIDs <episodeID>,<episodeID2>...`
 
 #### For seasons
 
-`$ crunchyrip --email <email> --password <password> --seriesID <seriesID>`
+`$ crunchyrip download --email <email> --password <password> --seriesID <seriesID>`
 
 You will be prompted to select the season you want to download for the given series
 
 Episodes will be stored in the downloads folder
 
-For more info run `$ crunchyrip --help`
+For more info run `$ crunchyrip [subcommand] --help`
 
 ## Finding episodeID
 
