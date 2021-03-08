@@ -26,6 +26,10 @@ Episodes will be stored in the downloads folder
 
 For more info run `$ crunchyrip [subcommand] --help`
 
+## Find episodeID and seriesID
+
+**If you are on beta crunchyroll, the ID should be in the url of the episode or season**
+
 ## Finding episodeID
 
 1. Go to Crunchyroll and find the episode you want to download
