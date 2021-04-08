@@ -26,6 +26,12 @@ Episodes will be stored in the downloads folder
 
 For more info run `$ crunchyrip [subcommand] --help`
 
+#### Episode range
+
+`$ crunchyrip download --email <email> --password <password> --seriesID <seriesID> --range <start episodeID>-<end episodeID>`
+
+This is useful for when you want to download multiple episodes but do not want to comma-seperate every episode or download the entire season
+
 ## Find episodeID and seriesID
 
 **If you are on beta crunchyroll, the ID should be in the url of the episode or season**

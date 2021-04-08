@@ -56,6 +56,11 @@ func main() {
 						Value: "",
 						Usage: "ID of the series you want to download a season for",
 					},
+					&cli.StringFlag{
+						Name:  "range",
+						Value: "",
+						Usage: "combine with seriesID to download a range of episodes (ex. --range G69P9MD9Y-GRGGQ42DR)",
+					},
 				},
 				Action: downloadAction,
 			},
@@ -179,9 +184,28 @@ func downloadAction(c *cli.Context) error {
 			return err
 		}
 
-		wg.Add(len(episodes))
+		var newep []cr.Episode
 
-		for _, e := range episodes {
+		if c.String("range") != "" {
+			found := false
+			eprange := strings.Split(c.String("range"), "-")
+			for _, e := range episodes {
+				if e.ID == eprange[0] {
+					found = true
+				}
+				if found {
+					newep = append(newep, e)
+				}
+				if e.ID == eprange[1] {
+					found = false
+				}
+			}
+		} else {
+			newep = episodes
+		}
+
+		for _, e := range newep {
+			wg.Add(1)
 			go func(c *http.Client, authConfig cr.AuthConfig, ep cr.Episode, resolution string, locale string) {
 				streamURL, err := cr.GetStreamURL(c, authConfig, ep.Links.Streams.Href, locale)
 
