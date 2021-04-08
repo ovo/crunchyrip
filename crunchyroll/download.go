@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -56,7 +57,7 @@ func DownloadStream(c *http.Client, auth AuthConfig, url string, resolution stri
 	os.Mkdir("./downloads", 0755)
 	os.Mkdir("./downloads/"+common.FormatTitle(ep.SeriesTitle), 0755)
 	os.Mkdir("./downloads/"+common.FormatTitle(ep.SeriesTitle)+"/"+common.FormatTitle(ep.SeasonTitle), 0755)
-	filePath := "./downloads/" + common.FormatTitle(ep.SeriesTitle) + "/" + common.FormatTitle(ep.SeasonTitle) + "/" + common.FormatTitle(ep.Title) + "_" + ep.ID + ".ts"
+	filePath := "./downloads/" + common.FormatTitle(ep.SeriesTitle) + "/" + common.FormatTitle(ep.SeasonTitle) + "/" + common.FormatTitle(ep.SeriesTitle) + ".s" + strconv.Itoa(ep.SeasonNumber) + ".e" + strconv.Itoa(ep.EpisodeNumber) + "." + common.FormatTitle(ep.Title) + ".ts"
 
 	p, listType, err := m3u8.DecodeFrom(bufio.NewReader(resp.Body), true)
 
