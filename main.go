@@ -171,7 +171,7 @@ func downloadAction(c *cli.Context) error {
 		reader := bufio.NewReader(os.Stdin)
 		fmt.Print("Enter season to download: ")
 		text, _ := reader.ReadString('\n')
-		index, err := strconv.Atoi(strings.Trim(text, "\n"))
+		index, err := strconv.Atoi(strings.TrimSpace(text))
 
 		if err != nil {
 			return err
