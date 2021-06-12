@@ -5,6 +5,10 @@ Download full episodes from crunchyroll into a .ts media file
 
 Inspired by [anirip](https://github.com/s32x/anirip)
 
+## Dependencies
+- Go
+- ffmpeg
+
 ## Installation
 Clone or download repository
 
