@@ -3,6 +3,7 @@ package crunchyroll
 import (
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -102,6 +103,10 @@ func GetCMS(c *http.Client, token string) (CMSInfo, error) {
 	var cms CMSInfo
 	body, _ := ioutil.ReadAll(resp.Body)
 	json.Unmarshal([]byte(body), &cms)
+
+	if (cms.Cms.Bucket == "") || (cms.Cms.Policy == "") || (cms.Cms.Signature == "") || (cms.Cms.KeyPairID == "") {
+		return CMSInfo{}, errors.New("could not get CMS info - check your credentials")
+	}
 
 	return cms, nil
 }

@@ -32,6 +32,10 @@ func GetStreamURL(c *http.Client, auth AuthConfig, path string, locale string) (
 
 	jsonParsed, err := gabs.ParseJSON([]byte(body))
 
+	if err != nil {
+		return "", err
+	}
+
 	url, _ = jsonParsed.Path("streams.adaptive_hls." + locale + ".url").Data().(string)
 
 	return url, nil
