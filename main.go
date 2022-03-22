@@ -120,6 +120,10 @@ func downloadAction(c *cli.Context) error {
 	log.Println("Getting CMS info")
 	cms, err := cr.GetCMS(&client, credentials.AccessToken)
 
+	if err != nil {
+		return err
+	}
+
 	authConfig := cr.AuthConfig{
 		AccessToken: credentials.AccessToken,
 		Policy:      cms.Cms.Policy,
@@ -148,7 +152,6 @@ func downloadAction(c *cli.Context) error {
 				if err != nil {
 					log.Fatal(err)
 				}
-
 				log.Println("Downloading " + episode.ID)
 				go cr.DownloadStream(c, authConfig, streamURL, resolution, episode, &wg)
 

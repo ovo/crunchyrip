@@ -259,7 +259,7 @@ func GetPlaylist(c *http.Client, urlStr string, recTime time.Duration, useLocalT
 					if !hit {
 						cache.Add(msURI, nil)
 						if useLocalTime {
-							recDuration = time.Now().Sub(startTime)
+							recDuration = time.Since(startTime)
 						} else {
 							recDuration += time.Duration(int64(v.Duration * 1000000000))
 						}
